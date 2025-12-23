@@ -19,6 +19,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -28,9 +29,17 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-            String header = request.getHeader(JwtConstant.JWT_HEADER);
-            if(header!=null && header.startsWith("Bearer")){
-                String jwt = header.substring(7);
+            String jwt = null;
+            if(request.getCookies()!=null){
+                for(Cookie cookie:request.getCookies()){
+                    if("token".equals(cookie.getName())){
+                        jwt = cookie.getValue();
+                    }
+                }
+            }
+
+            if(jwt!=null){
+            
                 try {
                     Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(jwt).getPayload();
                     String email = claims.get("email",String.class);

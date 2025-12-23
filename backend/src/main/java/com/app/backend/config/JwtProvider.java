@@ -9,12 +9,14 @@ import javax.crypto.SecretKey;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+@Service
 public class JwtProvider {
     private static final SecretKey key = Keys.hmacShaKeyFor(JwtConstant.SECRET_KEY.getBytes());
     private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000;
@@ -27,7 +29,7 @@ public class JwtProvider {
                 .issuedAt(new Date())
                 .claim("email", authentication.getName())
                 .claim("authorities", roles)
-                .expiration(new Date(System.currentTimeMillis() * EXPIRATION_TIME))
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key)
                 .compact();
          return jwt;
@@ -54,7 +56,7 @@ public class JwtProvider {
         try {
             Claims claims = parseToken(jwt);
             Date exp = claims.getExpiration();
-            return exp.before(exp);
+            return exp.before(new Date());
         } catch (Exception e) {
             return true;
         }
